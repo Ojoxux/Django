@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}社員名簿一覧{% endblock %}
+
+{% block content %}
+<h1>社員名簿一覧 <small>（全{{ total_count }}名）</small></h1>
+<table>
+    <thead>
+        <tr>
+            <th>氏名</th>
+            <th>部署</th>
+            <th>役職</th>
+            <th>メールアドレス</th>
+            <th>入社日</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for employee in employees %}
+        <tr>
+            <td>
+                <a href="{% url 'employee_detail' employee.id %}">
+                    {% if employee.role == "マネージャー" %}👑 {% endif %}{{ employee.name }}
+                </a>
+            </td>
+            <td>{{ employee.dept }}</td>
+            <td>{{ employee.role }}</td>
+            <td><a href="mailto:{{ employee.email }}">{{ employee.email }}</a></td>
+            <td>{{ employee.joined_date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">社員が登録されていません。</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

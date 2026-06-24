@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}デジタル社員名簿{% endblock %}</title>
+    <style>
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 0.25rem 0.5rem; }
+    </style>
+</head>
+<body>
+    <p>
+        <a href="/">ホーム</a> |
+        <a href="{% url 'employee_list' %}">社員名簿</a> |
+        <a href="/admin/">管理画面</a>
+    </p>
+    {% block content %}{% endblock %}
+</body>
+</html>

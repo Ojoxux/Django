@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}{{ employee.name }} - 社員詳細{% endblock %}
+
+{% block content %}
+<h1>社員詳細</h1>
+<dl>
+    <dt>氏名</dt>
+    <dd>{% if employee.role == "マネージャー" %}👑 {% endif %}{{ employee.name }}</dd>
+    <dt>部署</dt>
+    <dd>{{ employee.dept }}</dd>
+    <dt>役職</dt>
+    <dd>{{ employee.role }}</dd>
+    <dt>メールアドレス</dt>
+    <dd><a href="mailto:{{ employee.email }}">{{ employee.email }}</a></dd>
+    <dt>入社日</dt>
+    <dd>{{ employee.joined_date }}</dd>
+</dl>
+<p><a href="{% url 'employee_list' %}">一覧に戻る</a></p>
+{% endblock %}

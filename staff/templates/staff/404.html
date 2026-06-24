@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}社員が見つかりません{% endblock %}
+
+{% block content %}
+<h1>404 - ページが見つかりません</h1>
+<p>社員が存在しません。</p>
+<p><a href="{% url 'employee_list' %}">一覧に戻る</a></p>
+{% endblock %}
