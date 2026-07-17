@@ -16,5 +16,9 @@
     <dt>入社日</dt>
     <dd>{{ employee.joined_date }}</dd>
 </dl>
+<p>
+    <a href="{% url 'employee_edit' employee.id %}">この社員を編集する</a>
+    <a href="{% url 'employee_delete' employee.id %}">この社員を削除する</a>
+</p>
 <p><a href="{% url 'employee_list' %}">一覧に戻る</a></p>
 {% endblock %}
