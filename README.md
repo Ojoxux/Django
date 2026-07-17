@@ -2,7 +2,7 @@
 
 授業でDjangoを触るための開発環境
 
-## Get Started
+## 環境構築
 
 ### Dev Container
 
