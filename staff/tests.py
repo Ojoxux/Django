@@ -152,3 +152,108 @@ class EmployeeCreateViewTests(TestCase):
 
         self.assertContains(response, reverse("employee_create"))
         self.assertContains(response, "＋新規社員登録")
+
+
+class EmployeeUpdateDeleteViewTests(TestCase):
+    """第6回: 社員情報の編集・削除"""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.employee = Employee.objects.create(
+            name="編集前の社員",
+            dept="営業部",
+            role="一般",
+            email="before@example.com",
+            joined_date=date(2020, 4, 1),
+        )
+
+    def test_edit_url_matches_requirement(self):
+        self.assertEqual(
+            reverse("employee_edit", args=[self.employee.id]),
+            f"/portal/edit/{self.employee.id}/",
+        )
+
+    def test_edit_get_shows_form_with_employee_data(self):
+        response = self.client.get(reverse("employee_edit", args=[self.employee.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["form"].instance, self.employee)
+        self.assertContains(response, "編集前の社員")
+        self.assertContains(response, "更新する")
+
+    def test_valid_edit_post_updates_employee_and_redirects_to_list(self):
+        response = self.client.post(
+            reverse("employee_edit", args=[self.employee.id]),
+            {
+                "name": "編集後の社員",
+                "dept": "開発部",
+                "role": "マネージャー",
+                "email": "after@example.com",
+                "joined_date": "2026-07-01",
+            },
+        )
+
+        self.assertRedirects(response, reverse("employee_list"))
+        self.employee.refresh_from_db()
+        self.assertEqual(self.employee.name, "編集後の社員")
+        self.assertEqual(self.employee.dept, "開発部")
+        self.assertEqual(self.employee.email, "after@example.com")
+
+    def test_invalid_edit_post_shows_errors_without_updating_employee(self):
+        response = self.client.post(
+            reverse("employee_edit", args=[self.employee.id]),
+            {
+                "name": "編集後の社員",
+                "dept": "開発部",
+                "role": "一般",
+                "email": "invalid-email",
+                "joined_date": "2026-07-01",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.employee.refresh_from_db()
+        self.assertEqual(self.employee.name, "編集前の社員")
+
+    def test_delete_url_matches_requirement(self):
+        self.assertEqual(
+            reverse("employee_delete", args=[self.employee.id]),
+            f"/portal/delete/{self.employee.id}/",
+        )
+
+    def test_delete_get_shows_confirmation_without_deleting_employee(self):
+        response = self.client.get(reverse("employee_delete", args=[self.employee.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "社員情報の削除確認")
+        self.assertContains(response, "編集前の社員")
+        self.assertTrue(Employee.objects.filter(id=self.employee.id).exists())
+
+    def test_delete_post_deletes_employee_and_redirects_to_list(self):
+        response = self.client.post(reverse("employee_delete", args=[self.employee.id]))
+
+        self.assertRedirects(response, reverse("employee_list"))
+        self.assertFalse(Employee.objects.filter(id=self.employee.id).exists())
+
+    def test_list_has_edit_and_delete_links(self):
+        response = self.client.get(reverse("employee_list"))
+
+        self.assertContains(response, reverse("employee_edit", args=[self.employee.id]))
+        self.assertContains(
+            response, reverse("employee_delete", args=[self.employee.id])
+        )
+
+    def test_detail_has_edit_and_delete_links(self):
+        response = self.client.get(reverse("employee_detail", args=[self.employee.id]))
+
+        self.assertContains(response, reverse("employee_edit", args=[self.employee.id]))
+        self.assertContains(
+            response, reverse("employee_delete", args=[self.employee.id])
+        )
+
+    def test_edit_and_delete_return_404_for_missing_employee(self):
+        edit_response = self.client.get(reverse("employee_edit", args=[9999]))
+        delete_response = self.client.get(reverse("employee_delete", args=[9999]))
+
+        self.assertEqual(edit_response.status_code, 404)
+        self.assertEqual(delete_response.status_code, 404)

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}{{ employee.name }}さんの削除確認{% endblock %}
+
+{% block content %}
+<h1>社員情報の削除確認</h1>
+<p>「{{ employee.name }}」さんの情報を削除しますか？</p>
+<p>この操作は取り消せません。</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">削除する</button>
+    <a href="{% url 'employee_list' %}">キャンセル（一覧に戻る）</a>
+</form>
+{% endblock %}
