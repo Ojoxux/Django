@@ -4,6 +4,7 @@
 
 {% block content %}
 <h1>社員名簿一覧 <small>（全{{ total_count }}名）</small></h1>
+<p><a href="{% url 'employee_create' %}">＋新規社員登録</a></p>
 <table>
     <thead>
         <tr>

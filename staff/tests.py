@@ -5,6 +5,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from .admin import EmployeeAdmin
+from .forms import EmployeeForm
 from .models import Employee
 
 
@@ -34,6 +35,7 @@ class EmployeeAdminTests(TestCase):
 
 class EmployeeViewTests(TestCase):
     """F-03&F-04: Viewと表示"""
+
     @classmethod
     def setUpTestData(cls):
         cls.older = Employee.objects.create(
@@ -68,9 +70,7 @@ class EmployeeViewTests(TestCase):
 
     # portal/user/#idの詳細で氏名と入社日が表示されること
     def test_detail_shows_employee_and_joined_date(self):
-        response = self.client.get(
-            reverse("employee_detail", args=[self.newer.id])
-        )
+        response = self.client.get(reverse("employee_detail", args=[self.newer.id]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "新しい社員")
         self.assertContains(response, str(self.newer.joined_date.year))
@@ -79,3 +79,76 @@ class EmployeeViewTests(TestCase):
     def test_detail_returns_404_for_missing_employee(self):
         response = self.client.get(reverse("employee_detail", args=[9999]))
         self.assertContains(response, "社員が存在しません", status_code=404)
+
+
+class EmployeeFormTests(TestCase):
+    """第5回: 新規社員登録フォーム"""
+
+    def test_form_contains_all_employee_fields(self):
+        form = EmployeeForm()
+        self.assertEqual(
+            list(form.fields),
+            ["name", "dept", "role", "email", "joined_date"],
+        )
+
+    def test_joined_date_uses_date_input(self):
+        form = EmployeeForm()
+        self.assertEqual(form.fields["joined_date"].widget.input_type, "date")
+
+
+class EmployeeCreateViewTests(TestCase):
+    """第5回: 新規社員登録画面"""
+
+    def test_get_shows_empty_form(self):
+        response = self.client.get(reverse("employee_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["form"], EmployeeForm)
+        self.assertContains(response, "新規社員登録")
+        self.assertContains(response, "登録する")
+
+    def test_valid_post_creates_employee_and_redirects_to_list(self):
+        response = self.client.post(
+            reverse("employee_create"),
+            {
+                "name": "田中 花子",
+                "dept": "総務部",
+                "role": "一般",
+                "email": "tanaka@example.com",
+                "joined_date": "2026-07-01",
+            },
+        )
+
+        self.assertRedirects(response, reverse("employee_list"))
+        self.assertTrue(
+            Employee.objects.filter(
+                name="田中 花子",
+                email="tanaka@example.com",
+            ).exists()
+        )
+
+    def test_invalid_post_shows_errors_without_creating_employee(self):
+        response = self.client.post(
+            reverse("employee_create"),
+            {
+                "name": "田中 花子",
+                "dept": "総務部",
+                "role": "一般",
+                "email": "invalid-email",
+                "joined_date": "2026-07-01",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(
+            response.context["form"],
+            "email",
+            "有効なメールアドレスを入力してください。",
+        )
+        self.assertFalse(Employee.objects.filter(name="田中 花子").exists())
+
+    def test_list_has_link_to_create_view(self):
+        response = self.client.get(reverse("employee_list"))
+
+        self.assertContains(response, reverse("employee_create"))
+        self.assertContains(response, "＋新規社員登録")
